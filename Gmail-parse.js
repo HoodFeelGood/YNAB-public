@@ -15,19 +15,19 @@ function processInbox() {
 
         // Gather the message information
         var msg = threadsToProcess[j].getMessages()
-        var subject = msg[0].getSubject()
-        var body = msg[0].getPlainBody()
+        var from = msg[0].getFrom()
+        var body = msg[0].getRawContent()
 
         // Parses information from the Amazon confirmation email
-        var records = parseMessageData(body)
+        var records = parseMessageData(from, body)
 
         // Create a YNAB transaction        
         var budgetName // Can enter one here. If not, it will use the one configured in YNAB-config.gs
         var accountName // Can enter one here. If not, it will use the one configured in YNAB-config.gs
         var transactionDate = msg[0].getDate() // Will get the date from the email.
-        var payAmount = records.amount // The price parsed from the email.
-        var payeeName = 'Amazon' // Customize the name you want to use for the Payee.
-        var transactionMemo = records.order // Will use the Amazon order # found in the email.
+        var payAmount = records[0].amount // The price parsed from the email.
+        var payeeName = records[1] // Customize the name you want to use for the Payee.
+        var transactionMemo = records[0].order // Will use the Amazon order # found in the email.
         var categoryName = toProcessLabels[i] // Will use the Gmail label name as the category.
 
         prepareTransaction(budgetName, accountName, transactionDate, payAmount, payeeName, transactionMemo, categoryName)
@@ -44,20 +44,36 @@ function processInbox() {
 
 
 // Parse Amazon order confirmation emails
-function parseMessageData(body) {
+function parseMessageData(from, body) {
+
+  switch (from) {
+    case "\"Amazon.com\" <auto-confirm@amazon.com>":
+      var regExOrder = /Order #\d{3}-\d{7}-\d{7}/
+      var regExAmount = /Order Total: \$(\d+\.\d{2})/
+      var payeeName = "Amazon"
+      break
+
+    case "\"Target.com\" <orders@service.target.com>":
+      var regExOrder = /order #\d{13}/
+      var regExAmount = /total:[\s\S]*?\$(\d+\.\d{2})/
+      var payeeName = "Target"
+      break
+
+    default:
+      Logger.log("From is " + from)
+  }
+
   var record = {}
 
   // Look for "Order #" to get the order confirmation #
-  var regExOrder = /Order #\d{3}-\d{7}-\d{7}/
   var order = body.match(regExOrder)
   record.order = order[0]
 
   // Look for the price
-  var regExAmount = /Order Total: \$\d+\.\d{2}/
-  var amount = body.match(regExAmount)
-  record.amount = amount[0].replace(/[^\d.]/g, '') // only keeps digits and periods (.) (to remove $ sign and any commas)
+  var amount = body.match(regExAmount)[1]
+  record.amount = amount.replace(/[^\d.]/g, '') // only keeps digits and periods (.) (to remove $ sign and any commas)
 
-  return record
+  return [record, payeeName]
 }
 
 // Find all labels nested under the parent label
