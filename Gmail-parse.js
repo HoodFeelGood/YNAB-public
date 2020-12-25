@@ -53,7 +53,7 @@ function parseMessageData(body) {
   record.order = order[0]
 
   // Look for the price
-  var regExAmount = /\$\d+\.\d{2}/
+  var regExAmount = /Order Total: \$\d+\.\d{2}/
   var amount = body.match(regExAmount)
   record.amount = amount[0].replace(/[^\d.]/g, '') // only keeps digits and periods (.) (to remove $ sign and any commas)
 
