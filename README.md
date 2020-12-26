@@ -1,5 +1,5 @@
 # Welcome
-These set of scripts will allow you to enter YNAB transactions for Amazon, based on Amazon confirmation emails that you receive after purchase. You will have to label the emails based on the YNAB budget category and the scripts will take care of the rest...
+These set of scripts will allow you to enter YNAB transactions for Amazon and Target, based on the companies confirmation emails that you receive after purchase. You will have to label the emails based on the YNAB budget category and the scripts will take care of the rest...
 
 I will attempt to update this guide and scripts based on feedback, questions, and issues I hear about.
 
@@ -7,7 +7,8 @@ I will attempt to update this guide and scripts based on feedback, questions, an
 - YNAB with YNAB API (see https://api.youneedabudget.com/)
 - Google Apps Script (see https://www.google.com/script/start/)
 - Labels set up in Gmail (see more information below)
-- Amazon confirmation emails sent in plain text (visit https://www.amazon.com/gp/cpc/homepage?ref_=ya_d_l_comm_prefs#general)
+- ~~Amazon confirmation emails sent in plain text (visit https://www.amazon.com/gp/cpc/homepage?ref_=ya_d_l_comm_prefs#general)~~
+- Note: Amazon emails should now parse correctly whether in plain text or html.
 - probably other stuff that I've missed....
 
 # Instructions
@@ -27,9 +28,16 @@ I will attempt to update this guide and scripts based on feedback, questions, an
 - Within your script project, create a timed trigger to run the function "processInbox." I set mine to run every hour.
 
 ## Action!
-- When you get a confirmation email from Amazon, label it as "Pets" or whatever. Wait for the trigger. Then you should have a new YNAB transaction and your email should be moved to the "Processed" folder.
+- When you get a confirmation email from Amazon or Target, label it as "Pets" or whatever. Wait for the trigger. Then you should have a new YNAB transaction and your email should be moved to the "Processed" folder.
 
 # Possible future efforts
-- Allow splits
-- Attempt to customize based on invoices (see discussion at https://support.youneedabudget.com/t/y4h890q/categorizing-amazon-purchases)
-- How to handle gift card purchases (show up as $0 in the confirmation email)
+	1. Automatically recognize order confirmation emails without having to label
+		a. Propose YNAB transactions based on the findings via email or text
+		b. Allow you to easily confirm or correct
+	2. Recognize orders paid by gift card and still make an entry based on how you handle gift cards (I treat them as cash and still record them under cash) -- Amazon's emails show $0.00 total for gift card purchases
+	3. Automatically or manually splitting single orders to allow for multiple categories (e.g. In one order you buy some Groceries and some stuff for Pets)
+	4. After-the-fact identifying that a single order was actually split into multiple transactions by Amazon (see discussion about "invoices" at https://support.youneedabudget.com/t/y4h890q/categorizing-amazon-purchases)
+		a. Could potentially use shipping emails as a trigger
+		b. Or potentially require a periodic drop and parsing of the downloadable order.csv) 
+		c. Would likely require reading the Order Confirmation # (which my script records in the Memo field)
+    d. When Amazon transactions come in via credit card, if they are multiple transactions instead of one -- look at the shipping/delivery emails -- match up the Order #'s with the transactions and automatically replace the original single Amazon transaction with multiple
